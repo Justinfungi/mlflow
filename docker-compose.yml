@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # PostgreSQL数据库
+  postgres:
+    image: postgres:13
+    container_name: mlflow-postgres
+    environment:
+      POSTGRES_DB: mlflow
+      POSTGRES_USER: mlflow_user
+      POSTGRES_PASSWORD: secure_password_123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "3110:5432"
+    networks:
+      - mlflow_network
+    restart: unless-stopped
+
+  # MLflow服务器
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mlflow-server
+    user: root
+    ports:
+      - "3111:5000"
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=postgresql://mlflow_user:secure_password_123@postgres:5432/mlflow
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
+    volumes:
+      - artifacts_data:/mlflow/artifacts
+    command: 
+      - /bin/bash
+      - -c
+      - |
+        pip install mlflow[extras] psycopg2-binary
+        mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://mlflow_user:secure_password_123@postgres:5432/mlflow --default-artifact-root /mlflow/artifacts --serve-artifacts
+    depends_on:
+      - postgres
+    networks:
+      - mlflow_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  artifacts_data:
+
+networks:
+  mlflow_network:
+    driver: bridge 
