@@ -126,3 +126,7 @@ gunicorn.conf.py
 
 # Ignore claude file
 CLAUDE.md
+
+mlartifacts
+mlruns
+*.db

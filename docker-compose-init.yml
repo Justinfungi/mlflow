@@ -51,33 +51,9 @@ services:
       - mlflow_network
     restart: unless-stopped
 
-  # 备份服务
-  mlflow-backup:
-    build:
-      context: ./backup_services
-      dockerfile: Dockerfile
-    container_name: mlflow-backup-service
-    ports:
-      - "3112:8080"
-    environment:
-      - BACKUP_DIR=/backup/mlflow
-      - BACKUP_API_PORT=8080
-      - BACKUP_API_HOST=0.0.0.0
-    volumes:
-      - backup_data:/backup/mlflow
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./backup_services:/app/backup_services:ro
-    depends_on:
-      - postgres
-      - mlflow
-    networks:
-      - mlflow_network
-    restart: unless-stopped
-
 volumes:
   postgres_data:
   artifacts_data:
-  backup_data:
 
 networks:
   mlflow_network:
